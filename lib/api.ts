@@ -27,6 +27,20 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+// Intercepteur pour ajouter le token depuis localStorage (fallback si cookies ne fonctionnent pas)
+apiClient.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Variable pour stocker la fonction de déconnexion
 let logoutCallback: (() => void) | null = null;
 
@@ -42,9 +56,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expiré ou invalide
       if (typeof window !== 'undefined') {
-        // Supprimer les cookies
+        // Supprimer les cookies ET le localStorage
         document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         
         // Appeler le callback de déconnexion si disponible (mise à jour du store)
         if (logoutCallback) {
@@ -76,6 +92,15 @@ export const authApi = {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+    
+    // Stocker aussi dans localStorage comme fallback (pour Vercel)
+    if (response.data.access_token && typeof window !== 'undefined') {
+      localStorage.setItem('access_token', response.data.access_token);
+      if (response.data.refresh_token) {
+        localStorage.setItem('refresh_token', response.data.refresh_token);
+      }
+    }
+    
     return response.data;
   },
 

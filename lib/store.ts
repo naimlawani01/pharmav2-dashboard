@@ -30,12 +30,22 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     } finally {
+      // Nettoyer localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      }
       set({ user: null, isAuthenticated: false, hasFetched: false });
     }
   },
 
   // Fonction pour déconnexion forcée (utilisée par l'intercepteur)
   forceLogout: () => {
+    // Nettoyer localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
     set({ user: null, isAuthenticated: false, hasFetched: true });
   },
 
