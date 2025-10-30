@@ -145,7 +145,7 @@ export default function RegisterPage() {
                 placeholder="1"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Entrez l'ID de la pharmacie à laquelle vous êtes associé
+                Entrez l&apos;ID de la pharmacie à laquelle vous êtes associé
               </p>
             </div>
           )}

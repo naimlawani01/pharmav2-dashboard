@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { produitsApi } from '@/lib/api';
@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 export default function NewProduitPage() {
   const router = useRouter();
-  const { hasRole } = useAuthStore();
+  const { hasRole, hasFetched, isAuthenticated } = useAuthStore();
   const [formData, setFormData] = useState({
     nom: '',
     description: '',
@@ -20,8 +20,21 @@ export default function NewProduitPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (hasFetched && (!isAuthenticated || !hasRole('admin'))) {
+      router.replace('/produits');
+    }
+  }, [hasFetched, isAuthenticated, hasRole, router]);
+
+  if (!hasFetched || !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
   if (!hasRole('admin')) {
-    router.push('/produits');
     return null;
   }
 
